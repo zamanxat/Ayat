@@ -117,6 +117,7 @@ html[data-theme="dark"] .main,
 html[data-theme="dark"] .page{background:#0c0f1a!important;color:#e8ecf4!important}
 html[data-theme="dark"] h1,
 html[data-theme="dark"] .page h1{color:#e8ecf4!important}
+html[data-theme="dark"] .cell-profit{color:#34d399!important}
 html[data-theme="dark"] .topbar{border-color:#2d3748!important}
 html[data-theme="dark"] .sib-ov.open{background:rgba(0,0,0,.6)!important}
 html[data-theme="dark"] .modal{background:rgba(0,0,0,.7)!important}
@@ -952,6 +953,8 @@ tbody tr:hover td{background:#f8fafc}
 .field-box input{width:100%;padding:10px 13px 10px 37px;border:1.5px solid var(--edge);border-radius:10px;font-size:13.5px;font-family:inherit;outline:none;transition:border .2s,box-shadow .2s;background:#fff;color:var(--ink)}
 .field-box input:focus{border-color:var(--royal);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
 .field-box input::placeholder{color:#c8ccd8}
+.dash-wk-inp{padding:7px 10px;border-radius:10px;border:1.5px solid var(--edge);font-size:13px;font-family:inherit;background:var(--card-bg);color:var(--ink)}
+.cell-profit{color:#059669}
 
 /* ══ QUEUE BAR ══ */
 .queue-bar{margin-bottom:14px;padding:11px 14px;background:var(--panel-bg);border-radius:11px;border:1px solid var(--edge);display:none}
@@ -1234,7 +1237,7 @@ tbody tr:hover td{background:#f8f9fd}
     <div class="card"><div class="ch"><h3>Түсім динамикасы</h3></div><div class="ch260"><canvas id="cTrend"></canvas></div></div>
     <div class="card"><div class="ch"><h3>Төлем түрлері</h3></div><div class="ch260"><canvas id="cPayD"></canvas></div></div>
   </div>
-  <div class="card" style="margin-bottom:14px"><div class="ch"><h3>Соңғы апта</h3></div><div class="tw dtbl"><table><thead><tr><th>Күн</th><th>Тапсырыс</th><th>Түсім</th><th>ЗП</th><th>Таза табыс</th></tr></thead><tbody id="dWkTbl"></tbody></table></div><div id="dWkTblMob"></div></div>
+  <div class="card" style="margin-bottom:14px"><div class="ch" style="flex-wrap:wrap;gap:10px;align-items:center"><h3 style="margin:0">Күндер бойынша</h3><div class="dash-wk-dates" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto"><label style="font-size:11px;color:var(--mu);white-space:nowrap">Бастап</label><input type="date" id="dashWkStart" onchange="applyDashWkRange()" class="dash-wk-inp"><label style="font-size:11px;color:var(--mu);white-space:nowrap">Дейін</label><input type="date" id="dashWkEnd" onchange="applyDashWkRange()" class="dash-wk-inp"><button type="button" class="btn sm bo" onclick="resetDashWkRange()" title="Өткен апта (дс–жс)">Соңғы апта</button></div></div><div class="tw dtbl"><table><thead><tr><th>Күн</th><th>Тапсырыс</th><th>Түсім</th><th>ЗП</th><th>Таза табыс</th></tr></thead><tbody id="dWkTbl"></tbody></table></div><div id="dWkTblMob"></div></div>
   <div class="card"><div class="ch"><h3>Топ-5 менеджер</h3></div><div class="tw dtbl"><table><thead><tr><th>#</th><th>Менеджер</th><th>Тапсырыс</th><th>Түсім</th><th>ЗП қоры</th><th>Берілген ЗП</th><th>Берілмеген ЗП</th></tr></thead><tbody id="dTop5"></tbody></table></div><div id="dTop5Mob"></div></div>
 </div>
 
@@ -1336,7 +1339,7 @@ tbody tr:hover td{background:#f8f9fd}
 <div id="dailyPage" class="page">
   <h1 style="font-size:19px;font-weight:700;margin-bottom:14px">Күнделікті есеп</h1>
   <div class="card"><div class="ch"><h3>Соңғы 30 күн</h3></div><div class="ch300"><canvas id="cDaily"></canvas></div></div>
-  <div class="card"><div class="ch"><h3>Кесте</h3></div><div class="tw dtbl"><table><thead><tr><th>Күн</th><th>Тапсырыс</th><th>Түсім</th><th>Орт.чек</th><th>ЗП</th></tr></thead><tbody id="dailyTbl"></tbody></table></div><div id="dailyTblMob"></div></div>
+  <div class="card"><div class="ch"><h3>Кесте</h3></div><div class="tw dtbl"><table><thead><tr><th>Күн</th><th>Тапсырыс</th><th>Түсім</th><th>Орт.чек</th><th>ЗП</th><th>Таза табыс</th></tr></thead><tbody id="dailyTbl"></tbody></table></div><div id="dailyTblMob"></div></div>
 </div>
 
 <!-- RANKING PAGE -->
@@ -2306,6 +2309,10 @@ function getFilt(){const{s,e}=getRange();return dbO.filter(o=>o.created_at&&inR(
 function setGP(p){gPer=p;document.getElementById('gCust').style.display=p==='custom'?'flex':'none';if(p!=='custom'){const cp=curPage();trigPage(cp);}}
 function applyGP(){gCS=document.getElementById('gDS')?.value||'';gCE=document.getElementById('gDE')?.value||'';const cp=curPage();trigPage(cp);}
 function curPage(){return(document.querySelector('.page.active')?.id||'').replace('Page','');}
+function defaultDashWkDates(){const tm=monS(new Date()),lm=new Date(tm);lm.setDate(lm.getDate()-7);const le=new Date(tm);le.setMilliseconds(-1);return{start:toISO(lm),end:toISO(le)};}
+function initDashWkDates(){const sEl=document.getElementById('dashWkStart'),eEl=document.getElementById('dashWkEnd');if(!sEl||!eEl)return;const d=defaultDashWkDates();if(!sEl.value||!eEl.value){sEl.value=d.start;eEl.value=d.end;}}
+function applyDashWkRange(){const s=document.getElementById('dashWkStart')?.value,e=document.getElementById('dashWkEnd')?.value;if(s&&e&&s>e){popup('Бастап күні соңынан кеш болмауы керек','o');return;}rendDash();}
+function resetDashWkRange(){const d=defaultDashWkDates();const sEl=document.getElementById('dashWkStart'),eEl=document.getElementById('dashWkEnd');if(sEl)sEl.value=d.start;if(eEl)eEl.value=d.end;rendDash();}
 
 // ===== BONUS =====
 function oBon(o){return Math.round((Number(o.price||0)+Number(o.price2||0))*(parseFloat(o.bonus_percent??DPCT)/100));}
@@ -2537,9 +2544,18 @@ function rendDash(){
   // pay donut
   const pG={};d.forEach(o=>{const p=o.payment_type||'Белгісіз';pG[p]=(pG[p]||0)+Number(o.price||0);if(o.payment_type2&&o.price2>0) pG[o.payment_type2]=(pG[o.payment_type2]||0)+Number(o.price2);});
   mkCh('cPayD',ctx=>{charts.cPayD=new Chart(ctx,{type:'doughnut',data:{labels:Object.keys(pG),datasets:[{data:Object.values(pG),backgroundColor:COLS,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:6,boxWidth:10}}}}});});
-  // last week table
-  const tm=monS(new Date()),lm=new Date(tm);lm.setDate(lm.getDate()-7);const le=new Date(tm);le.setMilliseconds(-1);
-  const lw=dbO.filter(o=>o.created_at&&inR(o,lm,le));
+  // күндер бойынша кесте (таңдалған аралық)
+  initDashWkDates();
+  const wkS=document.getElementById('dashWkStart')?.value,wkE=document.getElementById('dashWkEnd')?.value;
+  let rangeStart,rangeEnd;
+  if(wkS&&wkE){
+    rangeStart=new Date(wkS+'T00:00:00');rangeEnd=new Date(wkE+'T23:59:59.999');
+    if(rangeStart>rangeEnd){rangeStart=new Date(wkE+'T00:00:00');rangeEnd=new Date(wkS+'T23:59:59.999');}
+  }else{
+    const tm=monS(new Date()),lm=new Date(tm);lm.setDate(lm.getDate()-7);const le=new Date(tm);le.setMilliseconds(-1);
+    rangeStart=lm;rangeEnd=le;
+  }
+  const lw=dbO.filter(o=>o.created_at&&inR(o,rangeStart,rangeEnd));
   const lwByDate={};lw.forEach(o=>{const ds=toISO(new Date(o.created_at));if(!lwByDate[ds])lwByDate[ds]={clients:new Set()};lwByDate[ds].clients.add((o.client_name||'').trim().toLowerCase());});
   function calcOrdProfit(o){
     const total=Number(o.price||0)+Number(o.price2||0);
@@ -2556,16 +2572,17 @@ function rendDash(){
     const bankComm=comm1+comm2;
     return total-(costPrice+mgrSalary+leadCost+deliveryCost+bankComm);
   }
-  const wkRows=Array.from({length:7},(_,i)=>{
-    const dt=new Date(lm);dt.setDate(dt.getDate()+i);const iso=toISO(dt);
+  const wkRows=[];
+  for(let c=new Date(rangeStart.getFullYear(),rangeStart.getMonth(),rangeStart.getDate());c<=new Date(rangeEnd.getFullYear(),rangeEnd.getMonth(),rangeEnd.getDate());c.setDate(c.getDate()+1)){
+    const iso=toISO(c);
     const dO=lw.filter(o=>o.created_at?.startsWith(iso));
     const sum=dO.reduce((s,o)=>s+Number(o.price||0)+Number(o.price2||0),0);
     const bn=dO.reduce((s,o)=>s+oBon(o),0);
     const profit=dO.reduce((s,o)=>s+calcOrdProfit(o),0);
-    return{lb:dt.toLocaleDateString('kk-KZ',{weekday:'short',day:'numeric',month:'short'}),cnt:dO.length,sum,bn,profit};
-  });
-  document.getElementById('dWkTbl').innerHTML=wkRows.map(r=>`<tr><td>${r.lb}</td><td>${r.cnt}</td><td>${r.sum.toLocaleString()} ₸</td><td>${r.bn.toLocaleString()} ₸</td><td style="color:#059669;font-weight:600">${r.profit.toLocaleString()} ₸</td></tr>`).join('');
-  const dWkMob=document.getElementById('dWkTblMob');if(dWkMob)dWkMob.innerHTML=wkRows.map(r=>`<div class="mob-card"><div class="mc-r"><span>Күн</span><b>${r.lb}</b></div><div class="mc-r"><span>Тапсырыс</span>${r.cnt}</div><div class="mc-r"><span>Түсім</span><b>${r.sum.toLocaleString()} ₸</b></div><div class="mc-r"><span>ЗП</span><b>${r.bn.toLocaleString()} ₸</b></div><div class="mc-r"><span>Таза табыс</span><b style="color:#059669">${r.profit.toLocaleString()} ₸</b></div></div>`).join('');
+    wkRows.push({lb:new Date(c).toLocaleDateString('kk-KZ',{weekday:'short',day:'numeric',month:'short'}),cnt:dO.length,sum,bn,profit});
+  }
+  document.getElementById('dWkTbl').innerHTML=wkRows.map(r=>`<tr><td>${r.lb}</td><td>${r.cnt}</td><td>${r.sum.toLocaleString()} ₸</td><td>${r.bn.toLocaleString()} ₸</td><td style="font-weight:600" class="cell-profit">${r.profit.toLocaleString()} ₸</td></tr>`).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--mu)">Аралықта күндер жоқ</td></tr>';
+  const dWkMob=document.getElementById('dWkTblMob');if(dWkMob)dWkMob.innerHTML=wkRows.length?wkRows.map(r=>`<div class="mob-card"><div class="mc-r"><span>Күн</span><b>${r.lb}</b></div><div class="mc-r"><span>Тапсырыс</span>${r.cnt}</div><div class="mc-r"><span>Түсім</span><b>${r.sum.toLocaleString()} ₸</b></div><div class="mc-r"><span>ЗП</span><b>${r.bn.toLocaleString()} ₸</b></div><div class="mc-r"><span>Таза табыс</span><b class="cell-profit">${r.profit.toLocaleString()} ₸</b></div></div>`).join(''):'<div style="text-align:center;padding:20px;color:var(--mu)">Аралықта күндер жоқ</div>';
   const byM={};d.forEach(o=>{const id=o.manager_id;if(!byM[id])byM[id]={cnt:0,sum:0,bon:0};byM[id].cnt++;byM[id].sum+=Number(o.price||0)+Number(o.price2||0);byM[id].bon+=oBon(o);});
   const top5=Object.entries(byM).map(([id,v])=>({id,...v,name:getMgrName(id)})).sort((a,b)=>b.sum-a.sum).slice(0,5);
   document.getElementById('dTop5').innerHTML=top5.map((r,i)=>{const paid=mPaid(r.id);return`<tr><td><b>${i+1}</b></td><td><b>${r.name}</b></td><td>${r.cnt}</td><td>${r.sum.toLocaleString()} ₸</td><td>${r.bon.toLocaleString()} ₸</td><td style="color:var(--g)">${paid.toLocaleString()} ₸</td><td style="color:var(--o)">${Math.max(0,r.bon-paid).toLocaleString()} ₸</td></tr>`;}).join('');
@@ -2938,11 +2955,30 @@ function openDelExpense(id){const e=dbExpenses.find(x=>x.id==id);if(!e)return;op
 // ===== DAILY =====
 function rendDaily(){
   const d=getFilt(),dm={};const now=new Date();
-  for(let i=29;i>=0;i--){const dt=new Date(now);dt.setDate(dt.getDate()-i);const iso=toISO(dt);dm[iso]={iso,lb:dt.toLocaleDateString('kk-KZ',{day:'numeric',month:'short'}),cnt:0,sum:0,bon:0};}
+  for(let i=29;i>=0;i--){const dt=new Date(now);dt.setDate(dt.getDate()-i);const iso=toISO(dt);dm[iso]={iso,lb:dt.toLocaleDateString('kk-KZ',{day:'numeric',month:'short'}),cnt:0,sum:0,bon:0,profit:0};}
   d.forEach(o=>{if(!o.created_at) return;const s=toISO(new Date(o.created_at));if(dm[s]){dm[s].cnt++;dm[s].sum+=Number(o.price||0)+Number(o.price2||0);dm[s].bon+=oBon(o);}});
+  const dailyInWindow=d.filter(o=>{if(!o.created_at)return false;const s=toISO(new Date(o.created_at));return !!dm[s];});
+  const dailyByDate={};dailyInWindow.forEach(o=>{const ds=toISO(new Date(o.created_at));if(!dailyByDate[ds])dailyByDate[ds]={clients:new Set()};dailyByDate[ds].clients.add((o.client_name||'').trim().toLowerCase());});
+  const prodCostMap={};(dbProds||[]).forEach(p=>{prodCostMap[p.name]=parseFloat(p.cost)||0;});
+  function dCalcCost(str){let t=0;(str||'').split(/;\s*/).filter(Boolean).forEach(part=>{const m=part.match(/^(.+?)\s*\((\d+)\s*шт\)\s*$/i);if(m){const name=m[1].trim(),qty=parseInt(m[2],10)||0;t+=(prodCostMap[name]||0)*qty;}});return t;}
+  function dailyOrdProfit(o){
+    const total=Number(o.price||0)+Number(o.price2||0);
+    const autoCost=dCalcCost(o.product||'')+dCalcCost(o.gift||'');
+    const costPrice=autoCost>0?autoCost:Number(o.cost_price||0);
+    const mgrSalary=oBon(o);
+    const ds=toISO(new Date(o.created_at));
+    const adSpend=getAdSpend(ds);
+    const clientCount=dailyByDate[ds]?dailyByDate[ds].clients.size:1;
+    const leadCost=clientCount>0?Math.round(adSpend/clientCount):0;
+    const deliveryCost=Number(o.delivery_cost||0);
+    const comm1=Math.round(Number(o.price||0)*getCommPercent(o.payment_type)/100);
+    const comm2=o.payment_type2&&Number(o.price2||0)>0?Math.round(Number(o.price2)*getCommPercent(o.payment_type2)/100):0;
+    return total-(costPrice+mgrSalary+leadCost+deliveryCost+comm1+comm2);
+  }
+  Object.keys(dm).forEach(iso=>{const dayOs=d.filter(o=>o.created_at&&toISO(new Date(o.created_at))===iso);dm[iso].profit=dayOs.reduce((s,o)=>s+dailyOrdProfit(o),0);});
   const rows=Object.values(dm).sort((a,b)=>a.iso.localeCompare(b.iso));
-  document.getElementById('dailyTbl').innerHTML=rows.map(r=>`<tr><td>${r.lb}</td><td>${r.cnt}</td><td>${r.sum.toLocaleString()} ₸</td><td>${r.cnt?Math.round(r.sum/r.cnt).toLocaleString():0} ₸</td><td>${r.bon.toLocaleString()} ₸</td></tr>`).join('');
-  const dailyMob=document.getElementById('dailyTblMob');if(dailyMob)dailyMob.innerHTML=rows.map(r=>`<div class="mob-card"><div class="mc-r"><span>Күн</span><b>${r.lb}</b></div><div class="mc-r"><span>Тапсырыс</span>${r.cnt}</div><div class="mc-r"><span>Түсім</span><b>${r.sum.toLocaleString()} ₸</b></div><div class="mc-r"><span>ЗП</span><b>${r.bon.toLocaleString()} ₸</b></div></div>`).join('');
+  document.getElementById('dailyTbl').innerHTML=rows.map(r=>`<tr><td>${r.lb}</td><td>${r.cnt}</td><td>${r.sum.toLocaleString()} ₸</td><td>${r.cnt?Math.round(r.sum/r.cnt).toLocaleString():0} ₸</td><td>${r.bon.toLocaleString()} ₸</td><td style="color:#059669;font-weight:600" class="cell-profit">${r.profit.toLocaleString()} ₸</td></tr>`).join('');
+  const dailyMob=document.getElementById('dailyTblMob');if(dailyMob)dailyMob.innerHTML=rows.map(r=>`<div class="mob-card"><div class="mc-r"><span>Күн</span><b>${r.lb}</b></div><div class="mc-r"><span>Тапсырыс</span>${r.cnt}</div><div class="mc-r"><span>Түсім</span><b>${r.sum.toLocaleString()} ₸</b></div><div class="mc-r"><span>ЗП</span><b>${r.bon.toLocaleString()} ₸</b></div><div class="mc-r"><span>Таза табыс</span><b style="color:#059669" class="cell-profit">${r.profit.toLocaleString()} ₸</b></div></div>`).join('');
   mkCh('cDaily',ctx=>{charts.cDaily=new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.lb),datasets:[{label:'Тапсырыс',data:rows.map(r=>r.cnt),backgroundColor:'#334155',borderRadius:3,yAxisID:'y2'},{label:'Түсім (мың)',data:rows.map(r=>Math.round(r.sum/1000)),backgroundColor:'#0369a1',borderRadius:3,yAxisID:'y'},{label:'ЗП (мың)',data:rows.map(r=>Math.round(r.bon/1000)),backgroundColor:'#7c3aed',borderRadius:3,yAxisID:'y'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,position:'left'},y2:{beginAtZero:true,position:'right',grid:{drawOnChartArea:false}}}}});});
 }
 
